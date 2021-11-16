@@ -4,24 +4,26 @@
 
 import argparse
 import logging
-import http.server
-import socketserver
 import os
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
 
 PORT = 8001
 
-BUNDLE_DIR = os.path.abspath(os.path.dirname(__file__))
+BUNDLE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "www-data")
+
+app = FastAPI()
 
 
-class HttpRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == "/":
-            self.path = "www-data/index.html"
-        else:
-            self.path = "www-data" + self.path
+@app.get("/get_collections")
+def get_collections():
+    return {"Hello": "World"}
 
-        logging.debug(self.path)
-        return http.server.SimpleHTTPRequestHandler.do_GET(self)
+
+app.mount("/", StaticFiles(directory=BUNDLE_DIR, html=True), name="static")
 
 
 def main():
@@ -38,14 +40,7 @@ def main():
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level, format="%(message)s")
 
-    handler = HttpRequestHandler
-
-    socketserver.TCPServer.allow_reuse_address = True
-
-    os.chdir(BUNDLE_DIR)
-    with socketserver.TCPServer(("", PORT), handler) as httpd:
-        logging.info("Server started at localhost:" + str(PORT))
-        httpd.serve_forever()
+    uvicorn.run(app)
 
 
 if __name__ == "__main__":
