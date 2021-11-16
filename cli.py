@@ -7,27 +7,15 @@ import logging
 import os
 
 import uvicorn
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
+from backend import create_app
 
 PORT = 8001
-
-BUNDLE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "www-data")
-
-app = FastAPI()
-
-
-@app.get("/get_collections")
-def get_collections():
-    return {"Hello": "World"}
-
-
-app.mount("/", StaticFiles(directory=BUNDLE_DIR, html=True), name="static")
+STATIC_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "www-data")
 
 
 def main():
-    """ Command-line entry-point. """
+    """Command-line entry-point."""
 
     parser = argparse.ArgumentParser(description="Description: {}".format(__file__))
 
@@ -40,6 +28,7 @@ def main():
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level, format="%(message)s")
 
+    app = create_app(STATIC_PATH)
     uvicorn.run(app)
 
 
