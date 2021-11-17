@@ -14,9 +14,28 @@ from backend import create_app
 PORT = 8001
 STATIC_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "www-data")
 
+log_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {"fmt": "%(message)s"},
+    },
+    "handlers": {
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "logger": {"handlers": ["default"], "level": "INFO"},
+    },
+}
+
+logging.config.dictConfig(log_config)
+
 
 def dev():
-    return create_app(STATIC_PATH)
+    return create_app(STATIC_PATH, debug=True)
 
 
 def main():
@@ -33,13 +52,14 @@ def main():
 
     args = parser.parse_args()
 
-    log_level = logging.DEBUG if args.dev else logging.INFO
-    logging.basicConfig(level=log_level, format="%(message)s")
+    logger = logging.getLogger("logger")
 
     if args.dev:
-        logging.info(
+        logger.setLevel(logging.DEBUG)
+        logger.debug(
             f"Starting application IN DEVELOPMENT MODE on https://localhost:{PORT}"
         )
+
         uvicorn.run(
             f"{Path(__file__).stem}:dev",
             factory=True,
@@ -49,7 +69,7 @@ def main():
         )
         raise SystemExit
 
-    logging.info(f"Starting application on https://localhost:{PORT}")
+    logger.info(f"Starting application on https://localhost:{PORT}")
     app = create_app(STATIC_PATH)
 
     uvicorn.run(app, port=PORT, log_level="warning")
