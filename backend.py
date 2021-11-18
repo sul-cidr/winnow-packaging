@@ -225,6 +225,16 @@ def create_app(static_path, debug=False):
         logging.info("Data successfully sent to frontend for report")
         return data["runs"][current_run["id"]]
 
+    @app.post("/update_individual_run_keyword_contexts")
+    async def update_individual_run_keyword_contexts(request: Request):
+        request_payload = await request.json()
+        individual_run_name = request_payload["individualRunName"]
+        data["runs"][current_run["id"]]["individual-reports"][individual_run_name][
+            "keyword-contexts"
+        ] = request_payload["contexts"]
+
+        save_session_file(data)
+
     app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
 
     data = initialize_data()
