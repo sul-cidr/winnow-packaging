@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, Request, Form, File, UploadFile
-from fastapi.staticfiles import StaticFiles
+
+from fastapi_spa import SinglePageApplication
 
 logger = logging.getLogger("logger")
 
@@ -46,7 +47,7 @@ def save_session_file(data):
     json.dump(data, DATA_FILE.open("w", encoding="utf8"), indent=2)
 
 
-def create_app(static_path, debug=False):
+def create_app(spa_path, debug=False):
     if debug:
         logger.setLevel("DEBUG")
 
@@ -235,7 +236,7 @@ def create_app(static_path, debug=False):
 
         save_session_file(data)
 
-    app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
+    app.mount(path="/", app=SinglePageApplication(directory=spa_path), name="SPA")
 
     data = initialize_data()
     current_run = {

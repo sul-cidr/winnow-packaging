@@ -12,7 +12,7 @@ import uvicorn
 from backend import create_app
 
 PORT = 8001
-STATIC_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "www-data")
+SPA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "www-data")
 
 log_config = {
     "version": 1,
@@ -35,7 +35,7 @@ logging.config.dictConfig(log_config)
 
 
 def dev():
-    return create_app(STATIC_PATH, debug=True)
+    return create_app(SPA_PATH, debug=True)
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
         raise SystemExit
 
     logger.info(f"Starting application on https://localhost:{PORT}")
-    app = create_app(STATIC_PATH)
+    app = create_app(SPA_PATH)
 
     uvicorn.run(app, port=PORT, log_level="warning")
 
