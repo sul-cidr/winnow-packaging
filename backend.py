@@ -1,8 +1,10 @@
 import json
 import logging
+import shutil
 from pathlib import Path
+from typing import List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Form, File, UploadFile
 from fastapi.staticfiles import StaticFiles
 
 logger = logging.getLogger("logger")
@@ -52,6 +54,79 @@ def create_app(static_path, debug=False):
     @app.get("/get_collections")
     def get_collections():
         return data["collections"]
+
+    @app.post("/add_collection")
+    async def add_collection(request: Request):
+        request_payload = await request.json()
+        collection_id = request_payload["id"]
+
+        logger.info("Adding collection '%s'", collection_id)
+
+        data["collections"][collection_id] = {
+            "id": collection_id,
+            "name": request_payload["name"],
+            "collection-count": request_payload["collection_count"],
+            "shortened-name": request_payload["shortenedName"],
+            "description": request_payload["description"],
+            "themes": request_payload["themes"],
+            "notes": request_payload["notes"],
+        }
+
+        save_session_file(data)
+
+        return
+
+    @app.post("/edit_collection")
+    async def edit_collection(request: Request):
+        request_payload = await request.json()
+        collection_id = request_payload["id"]
+
+        logger.info("Editing collection '%s'", collection_id)
+
+        data["collections"][collection_id].update(
+            {
+                "name": request_payload["name"],
+                "shortened-name": request_payload["shortenedName"],
+                "description": request_payload["description"],
+                "themes": request_payload["themes"],
+                "notes": request_payload["notes"],
+            }
+        )
+
+        save_session_file(data)
+
+        return
+
+    @app.post("/upload_collection")
+    async def upload_collection(
+        collectionId: str = Form(...), file: List[UploadFile] = File(...)
+    ):
+        collection_path = COLLECTIONS_PATH / collectionId
+        collection_path.mkdir(parents=True, exist_ok=True)
+
+        for _file in file:
+            target_path = collection_path / _file.filename
+            logger.debug("Writing file '%s'", target_path)
+            with target_path.open("wb") as _fh:
+                _fh.write(_file.file.read())
+
+        return
+
+    @app.post("/delete_collection")
+    async def delete_collection(request: Request):
+        request_payload = await request.json()
+        collection_id = request_payload["id"]
+
+        logger.info("Deleting collection '%s'", collection_id)
+
+        collection_path = COLLECTIONS_PATH / collection_id
+        if collection_path.is_dir():
+            shutil.rmtree(collection_path)
+
+        del data["collections"][collection_id]
+        save_session_file(data)
+
+        return
 
     app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
 
