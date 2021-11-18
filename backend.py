@@ -128,6 +128,66 @@ def create_app(static_path, debug=False):
 
         return
 
+    @app.get("/get_keywords")
+    def get_keywords():
+        return data["keyword-lists"]
+
+    @app.post("/add_keyword_list")
+    async def add_keyword_list(request: Request):
+        # Note: the front-end posts `include` and `exclude` to `/add_keyword_list` as
+        #       comma-separated strings, and to `/edit_keyword_list` as JSON arrays...
+        request_payload = await request.json()
+        kwl_id = request_payload["id"]
+
+        logger.info("Adding keyword list '%s'", kwl_id)
+
+        data["keyword-lists"][kwl_id] = {
+            "name": request_payload["name"],
+            "version": request_payload["version"],
+            "date-added": request_payload["date_added"],
+            "include": request_payload["included"].split(","),
+            "exclude": request_payload["excluded"].split(","),
+        }
+
+        save_session_file(data)
+
+        return
+
+    @app.post("/edit_keyword_list")
+    async def edit_keyword_list(request: Request):
+        # Note: the front-end posts `include` and `exclude` to `/add_keyword_list` as
+        #       comma-separated strings, and to `/edit_keyword_list` as JSON arrays...
+        request_payload = await request.json()
+        kwl_id = request_payload["id"]
+
+        logger.info("Editing keyword list '%s'", kwl_id)
+
+        data["keyword-lists"][kwl_id].update(
+            {
+                "name": request_payload["name"],
+                "version": request_payload["version"],
+                "date-added": request_payload["date_added"],
+                "include": request_payload["included"],
+                "exclude": request_payload["excluded"],
+            }
+        )
+
+        save_session_file(data)
+
+        return
+
+    @app.post("/delete_keyword_list")
+    async def delete_keyword_list(request: Request):
+        request_payload = await request.json()
+        kwl_id = request_payload["id"]
+
+        logger.info("Deleting keyword list '%s'", kwl_id)
+
+        del data["keyword-lists"][kwl_id]
+        save_session_file(data)
+
+        return
+
     app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
 
     data = initialize_data()
