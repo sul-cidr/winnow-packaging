@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 logger = logging.getLogger("logger")
 
 DATA_FILE = Path("./data/session.json")
+RUN_FILE = Path("./data/run.json")
 COLLECTIONS_PATH = Path("./data/corpus-files")
 
 
@@ -188,8 +189,54 @@ def create_app(static_path, debug=False):
 
         return
 
+    @app.get("/get_past_runs")
+    def get_past_runs():
+        return data["runs"]
+
+    @app.post("/delete_past_run")
+    async def delete_past_run(request: Request):
+        request_payload = await request.json()
+        run_id = request_payload["id"]
+
+        logger.info("Deleting run '%s'", run_id)
+
+        del data["runs"][run_id]
+        save_session_file(data)
+
+        return
+
+    @app.post("/update_clicked_report")
+    async def update_clicked_report(request: Request):
+        request_payload = await request.json()
+        current_run["afterRun"] = False
+        current_run["id"] = request_payload["data"]
+        current_run["total"] = 100
+
+        logger.info("Clicked report updated to %s", current_run["id"])
+
+    @app.get("/get_current_run_data")
+    async def get_current_run_data():
+        if current_run["id"] not in data["runs"]:
+            data["runs"][current_run["id"]] = json.load(
+                RUN_FILE.open("r", encoding="utf8")
+            )
+            save_session_file(data)
+
+        logging.info("Data successfully sent to frontend for report")
+        return data["runs"][current_run["id"]]
+
     app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
 
     data = initialize_data()
+    current_run = {
+        "id": "",
+        "name": "",
+        "time": "",
+        "collections": [],
+        "interviews": "",
+        "interviewees": "",
+        "keywordList": [],
+        "total": 0,  # Progress of the run
+    }
 
     return app
