@@ -1,6 +1,8 @@
 import json
 import logging
+import re
 import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -13,6 +15,7 @@ logger = logging.getLogger("logger")
 DATA_FILE = Path("./data/session.json")
 RUN_FILE = Path("./data/run.json")
 COLLECTIONS_PATH = Path("./data/corpus-files")
+METADATA_PATH = Path("./data/metadata-files")
 
 
 def initialize_data():
@@ -235,6 +238,72 @@ def create_app(spa_path, debug=False):
         ] = request_payload["contexts"]
 
         save_session_file(data)
+
+    @app.post("/set_run_name")
+    async def set_run_name(request: Request):
+        request_payload = await request.json()
+
+        name = request_payload["data"]["name"]
+        time = request_payload["data"]["time"]
+        id = "-".join((re.sub(r"\s", "", name), re.sub(r"[\s\/:]", "", time)))
+        current_run = {"id": id, "name": name, "time": time, "total": 0}
+
+        logger.info(
+            "Current run name set to %(name)s, current time set to %(time)s"
+            % current_run
+        )
+
+        logger.info("Current run ID set to %s", current_run["id"])
+
+        return
+
+    @app.post("/choose_collections")
+    async def choose_collections(request: Request):
+        request_payload = await request.json()
+        current_run["collections"] = request_payload["data"]
+        logger.info("Current run collections updated to %s", current_run["collections"])
+        return
+
+    @app.post("/choose_keywords")
+    async def choose_keywords(request: Request):
+        request_payload = await request.json()
+        current_run["keywordList"] = request_payload["data"]
+        logger.info(
+            "Current run keyword lists updated to %s", current_run["keywordList"]
+        )
+        return
+
+    @app.post("/choose_metadata")
+    async def choose_metadata(request: Request):
+        request_payload = await request.json()
+        current_run["interviews"] = request_payload["data"]
+        logger.info(
+            "Current run interview metadata updated to %s", current_run["interviews"]
+        )
+        return
+
+    @app.get("/get_metadata_files")
+    async def get_metadata_files():
+        metadata_files = [
+            _file
+            for _file in METADATA_PATH.iterdir()
+            if _file.is_file() and _file.stem != ".gitkeep"
+        ]
+        return metadata_files
+
+    @app.post("/upload_metadata")
+    async def upload_metadata(file: List[UploadFile] = File(...)):
+        for _file in file:
+            # timestamp is milliseconds since the epoch, to match the return value of
+            #  JS `Date.now()` (used in the original version)
+            timestamp = int(datetime.now().timestamp() * 1000)
+            suffix = Path(_file.filename).suffix
+            target_path = METADATA_PATH / f"metadata{timestamp}{suffix}"
+            logger.debug("Writing file '%s'", target_path)
+            with target_path.open("wb") as _fh:
+                _fh.write(_file.file.read())
+
+        return
 
     app.mount(path="/", app=SinglePageApplication(directory=spa_path), name="SPA")
 
