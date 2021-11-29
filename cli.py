@@ -12,7 +12,9 @@ import uvicorn
 from backend import create_app
 
 PORT = 8001
-SPA_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "www-data")
+SPA_PATH = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)), "winnow", "www-data"
+)
 
 log_config = {
     "version": 1,
