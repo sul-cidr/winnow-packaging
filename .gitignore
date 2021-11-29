@@ -1,4 +1,5 @@
 .venv
+.vscode/
 build/
 dist/
 www-data
