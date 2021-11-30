@@ -14,45 +14,40 @@ from fastapi_spa import SinglePageApplication
 
 logger = logging.getLogger("logger")
 
-DATA_FILE = Path("./data/session.json")
-RUN_FILE = Path("./data/run.json")
-COLLECTIONS_PATH = Path("./data/corpus-files")
-METADATA_PATH = Path("./data/metadata-files")
 
-
-def initialize_data():
+def initialize_data(data_file, collection_path):
     logger.info("Initializing data from session.json...")
 
-    if DATA_FILE.is_file():
-        data = json.load(DATA_FILE.open("r", encoding="utf8"))
+    if data_file.is_file():
+        data = json.load(data_file.open("r", encoding="utf8"))
     else:
-        logger.warning(f"Data file at {DATA_FILE} not found -- creating empty file!")
+        logger.warning(f"Data file at {data_file} not found -- creating empty file!")
         data = {"keyword-lists": {}, "collections": {}, "runs": {}}
 
     collections_dirs = []
-    if COLLECTIONS_PATH.is_dir():
-        collections_dirs = [_ for _ in COLLECTIONS_PATH.iterdir() if _.is_dir()]
+    if collection_path.is_dir():
+        collections_dirs = [_ for _ in collection_path.iterdir() if _.is_dir()]
 
     # Deletes any collections in the data JSON structure that don't appear
     # within our folder and prints a warning message.
     for collection_id in data["collections"]:
-        if COLLECTIONS_PATH / collection_id not in collections_dirs:
+        if collection_path / collection_id not in collections_dirs:
             logger.warning(
                 "WARNING: collection '%s' doesn't exist in '%s'. Please either add the "
                 "files or delete the entry from '%s'.",
                 collection_id,
-                COLLECTIONS_PATH,
-                DATA_FILE,
+                collection_path,
+                data_file,
             )
 
     return data
 
 
-def save_session_file(data):
-    json.dump(data, DATA_FILE.open("w", encoding="utf8"), indent=2)
+def save_session_file(data, data_file):
+    json.dump(data, data_file.open("w", encoding="utf8"), indent=2)
 
 
-def create_app(spa_path, tool_script_path, debug=False):
+def create_app(spa_path, tool_script_path, data_path, debug=False):
     if debug:
         logger.setLevel("DEBUG")
 
@@ -79,7 +74,7 @@ def create_app(spa_path, tool_script_path, debug=False):
             "notes": request_payload["notes"],
         }
 
-        save_session_file(data)
+        save_session_file(data, data_file)
 
         return
 
@@ -100,7 +95,7 @@ def create_app(spa_path, tool_script_path, debug=False):
             }
         )
 
-        save_session_file(data)
+        save_session_file(data, data_file)
 
         return
 
@@ -108,7 +103,7 @@ def create_app(spa_path, tool_script_path, debug=False):
     async def upload_collection(
         collectionId: str = Form(...), file: List[UploadFile] = File(...)
     ):
-        collection_path = COLLECTIONS_PATH / collectionId
+        collection_path = collections_path / collectionId
         collection_path.mkdir(parents=True, exist_ok=True)
 
         for _file in file:
@@ -126,12 +121,12 @@ def create_app(spa_path, tool_script_path, debug=False):
 
         logger.info("Deleting collection '%s'", collection_id)
 
-        collection_path = COLLECTIONS_PATH / collection_id
+        collection_path = collections_path / collection_id
         if collection_path.is_dir():
             shutil.rmtree(collection_path)
 
         del data["collections"][collection_id]
-        save_session_file(data)
+        save_session_file(data, data_file)
 
         return
 
@@ -156,7 +151,7 @@ def create_app(spa_path, tool_script_path, debug=False):
             "exclude": request_payload["excluded"].split(","),
         }
 
-        save_session_file(data)
+        save_session_file(data, data_file)
 
         return
 
@@ -179,7 +174,7 @@ def create_app(spa_path, tool_script_path, debug=False):
             }
         )
 
-        save_session_file(data)
+        save_session_file(data, data_file)
 
         return
 
@@ -191,7 +186,7 @@ def create_app(spa_path, tool_script_path, debug=False):
         logger.info("Deleting keyword list '%s'", kwl_id)
 
         del data["keyword-lists"][kwl_id]
-        save_session_file(data)
+        save_session_file(data, data_file)
 
         return
 
@@ -207,7 +202,7 @@ def create_app(spa_path, tool_script_path, debug=False):
         logger.info("Deleting run '%s'", run_id)
 
         del data["runs"][run_id]
-        save_session_file(data)
+        save_session_file(data, data_file)
 
         return
 
@@ -224,9 +219,9 @@ def create_app(spa_path, tool_script_path, debug=False):
     async def get_current_run_data():
         if current_run["id"] not in data["runs"]:
             data["runs"][current_run["id"]] = json.load(
-                RUN_FILE.open("r", encoding="utf8")
+                run_file.open("r", encoding="utf8")
             )
-            save_session_file(data)
+            save_session_file(data, data_file)
 
         logger.info("Data successfully sent to frontend for report")
         return data["runs"][current_run["id"]]
@@ -239,7 +234,7 @@ def create_app(spa_path, tool_script_path, debug=False):
             "keyword-contexts"
         ] = request_payload["contexts"]
 
-        save_session_file(data)
+        save_session_file(data, data_file)
 
     @app.post("/set_run_name")
     async def set_run_name(request: Request):
@@ -289,7 +284,7 @@ def create_app(spa_path, tool_script_path, debug=False):
     async def get_metadata_files():
         metadata_files = [
             _file
-            for _file in METADATA_PATH.iterdir()
+            for _file in metadata_path.iterdir()
             if _file.is_file() and _file.stem != ".gitkeep"
         ]
         return metadata_files
@@ -301,7 +296,7 @@ def create_app(spa_path, tool_script_path, debug=False):
             #  JS `Date.now()` (used in the original version)
             timestamp = int(datetime.now().timestamp() * 1000)
             suffix = Path(_file.filename).suffix
-            target_path = METADATA_PATH / f"metadata{timestamp}{suffix}"
+            target_path = metadata_path / f"metadata{timestamp}{suffix}"
             logger.debug("Writing file '%s'", target_path)
             with target_path.open("wb") as _fh:
                 _fh.write(_file.file.read())
@@ -361,7 +356,12 @@ def create_app(spa_path, tool_script_path, debug=False):
 
     app.mount(path="/", app=SinglePageApplication(directory=spa_path), name="SPA")
 
-    data = initialize_data()
+    data_file = data_path / "session.json"
+    run_file = data_path / "run.json"
+    collections_path = data_path / "corpus-files"
+    metadata_path = data_path / "metadata-files"
+
+    data = initialize_data(data_file, collections_path)
     current_run = {
         "id": "",
         "name": "",

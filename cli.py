@@ -12,12 +12,9 @@ import uvicorn
 from backend import create_app
 
 PORT = 8001
-SPA_PATH = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)), "winnow", "www-data"
-)
-TOOL_SCRIPT_PATH = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)), "winnow", "tool_script.py"
-)
+SPA_PATH = Path(__file__).parent.absolute() / "winnow" / "www-data"
+TOOL_SCRIPT_PATH = Path(__file__).parent.absolute() / "winnow" / "tool_script.py"
+DATA_PATH = Path(__file__).parent.absolute() / "data"
 
 log_config = {
     "version": 1,
@@ -40,7 +37,7 @@ logging.config.dictConfig(log_config)
 
 
 def dev():
-    return create_app(SPA_PATH, TOOL_SCRIPT_PATH, debug=True)
+    return create_app(SPA_PATH, TOOL_SCRIPT_PATH, DATA_PATH, debug=True)
 
 
 def main():
@@ -75,7 +72,7 @@ def main():
         raise SystemExit
 
     logger.info(f"Starting application on https://localhost:{PORT}")
-    app = create_app(SPA_PATH, TOOL_SCRIPT_PATH)
+    app = create_app(SPA_PATH, TOOL_SCRIPT_PATH, DATA_PATH)
 
     uvicorn.run(app, port=PORT, log_level="warning")
 
