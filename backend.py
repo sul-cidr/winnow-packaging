@@ -313,8 +313,6 @@ def create_app(spa_path, tool_script_path, data_path, debug=False):
             current_run["interviewees"],
         )
 
-        logger.info("Running python script")
-
         run_data = {
             "id": current_run["id"],
             "name": current_run["name"],
