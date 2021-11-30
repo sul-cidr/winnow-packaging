@@ -248,7 +248,8 @@ def create_app(spa_path, tool_script_path, debug=False):
         name = request_payload["data"]["name"]
         time = request_payload["data"]["time"]
         id = "-".join((re.sub(r"\s", "", name), re.sub(r"[\s\/:]", "", time)))
-        current_run = {"id": id, "name": name, "time": time, "total": 0}
+        current_run.clear()
+        current_run.update({"id": id, "name": name, "time": time, "total": 0})
 
         logger.info(
             "Current run name set to %(name)s, current time set to %(time)s"
