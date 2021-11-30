@@ -5,6 +5,10 @@ name = "pypi"
 
 [packages]
 pyinstaller = "*"
+fastapi = "*"
+uvicorn = "*"
+python-multipart = "*"
+pandas = "*"
 
 [dev-packages]
 

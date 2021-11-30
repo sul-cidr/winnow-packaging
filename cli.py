@@ -4,48 +4,77 @@
 
 import argparse
 import logging
-import http.server
-import socketserver
 import os
+from pathlib import Path
+
+import uvicorn
+
+from backend import create_app
 
 PORT = 8001
+SPA_PATH = Path(__file__).parent.absolute() / "winnow" / "www-data"
+TOOL_SCRIPT_PATH = Path(__file__).parent.absolute() / "winnow" / "tool_script.py"
+DATA_PATH = Path(__file__).parent.absolute() / "data"
 
-BUNDLE_DIR = os.path.abspath(os.path.dirname(__file__))
+log_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {"fmt": "%(message)s"},
+    },
+    "handlers": {
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "logger": {"handlers": ["default"], "level": "INFO"},
+    },
+}
+
+logging.config.dictConfig(log_config)
 
 
-class HttpRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == "/":
-            self.path = "www-data/index.html"
-        else:
-            self.path = "www-data" + self.path
-
-        logging.debug(self.path)
-        return http.server.SimpleHTTPRequestHandler.do_GET(self)
+def dev():
+    return create_app(SPA_PATH, TOOL_SCRIPT_PATH, DATA_PATH, debug=True)
 
 
 def main():
-    """ Command-line entry-point. """
+    """Command-line entry-point."""
 
     parser = argparse.ArgumentParser(description="Description: {}".format(__file__))
 
     parser.add_argument(
-        "-v", "--verbose", action="store_true", default=False, help="Increase verbosity"
+        "--dev",
+        action="store_true",
+        default=False,
+        help="Launch application in development mode",
     )
 
     args = parser.parse_args()
 
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=log_level, format="%(message)s")
+    logger = logging.getLogger("logger")
 
-    handler = HttpRequestHandler
+    if args.dev:
+        logger.setLevel(logging.DEBUG)
+        logger.debug(
+            f"Starting application IN DEVELOPMENT MODE on https://localhost:{PORT}"
+        )
 
-    socketserver.TCPServer.allow_reuse_address = True
+        uvicorn.run(
+            f"{Path(__file__).stem}:dev",
+            factory=True,
+            port=PORT,
+            log_level="debug",
+            reload=True,
+        )
+        raise SystemExit
 
-    os.chdir(BUNDLE_DIR)
-    with socketserver.TCPServer(("", PORT), handler) as httpd:
-        logging.info("Server started at localhost:" + str(PORT))
-        httpd.serve_forever()
+    logger.info(f"Starting application on https://localhost:{PORT}")
+    app = create_app(SPA_PATH, TOOL_SCRIPT_PATH, DATA_PATH)
+
+    uvicorn.run(app, port=PORT, log_level="warning")
 
 
 if __name__ == "__main__":
