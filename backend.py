@@ -1,7 +1,9 @@
+import asyncio
 import json
 import logging
 import re
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -50,7 +52,7 @@ def save_session_file(data):
     json.dump(data, DATA_FILE.open("w", encoding="utf8"), indent=2)
 
 
-def create_app(spa_path, debug=False):
+def create_app(spa_path, tool_script_path, debug=False):
     if debug:
         logger.setLevel("DEBUG")
 
@@ -304,6 +306,57 @@ def create_app(spa_path, debug=False):
                 _fh.write(_file.file.read())
 
         return
+
+    @app.post("/run_python_script")
+    async def run_python_script(request: Request):
+        request_payload = await request.json()
+        current_run["interviewees"] = request_payload["data"]
+
+        logger.info(
+            "Current run interviewees metadata file updated to %s",
+            current_run["interviewees"],
+        )
+
+        logger.info("Running python script")
+
+        run_data = {
+            "id": current_run["id"],
+            "name": current_run["name"],
+            "date": current_run["time"],
+            "interviews": current_run["interviews"],
+            "interviewees": current_run["interviewees"],
+            "collections": [
+                data["collections"][collection_id]
+                for collection_id in current_run["collections"]
+            ],
+            "keywordList": [
+                data["keyword-lists"][keyword_list_id]
+                for keyword_list_id in current_run["keywordList"]
+            ],
+        }
+
+        logger.info("Running python script")
+
+        current_run["statusMessage"] = "Starting subcorpora run..."
+        current_run["afterRun"] = True
+
+        tool_script_process = await asyncio.create_subprocess_exec(
+            sys.executable,
+            tool_script_path,
+            json.dumps(run_data),
+            stdout=asyncio.subprocess.PIPE,
+        )
+
+        while line := await tool_script_process.stdout.readline():
+            message = json.loads(line.decode("ascii").rstrip())
+            if message["type"] == "progress-message":
+                current_run["statusMessage"] = message["content"]
+            elif message["type"] == "progress":
+                current_run["total"] = message["content"]
+
+    @app.get("/get_python_progress")
+    async def get_python_progress():
+        return {"total": current_run["total"], "message": current_run["statusMessage"]}
 
     app.mount(path="/", app=SinglePageApplication(directory=spa_path), name="SPA")
 
