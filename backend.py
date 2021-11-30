@@ -336,6 +336,7 @@ def create_app(spa_path, tool_script_path, data_path, debug=False):
 
         tool_script_process = await asyncio.create_subprocess_exec(
             sys.executable,
+            "-u",
             tool_script_path,
             json.dumps(run_data),
             stdout=asyncio.subprocess.PIPE,
