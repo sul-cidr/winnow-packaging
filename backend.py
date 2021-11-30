@@ -283,7 +283,7 @@ def create_app(spa_path, tool_script_path, data_path, debug=False):
     @app.get("/get_metadata_files")
     async def get_metadata_files():
         metadata_files = [
-            _file
+            _file.relative_to(metadata_path)
             for _file in metadata_path.iterdir()
             if _file.is_file() and _file.stem != ".gitkeep"
         ]
