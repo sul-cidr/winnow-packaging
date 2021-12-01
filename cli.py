@@ -4,17 +4,21 @@
 
 import argparse
 import logging
-import os
 from pathlib import Path
 
 import uvicorn
+from appdirs import user_data_dir
 
 from backend import create_app
+
+# Strings used for creating a user-specific data folder
+#  (APP_AUTHOR only used on Windows)
+APP_NAME = "Winnow"
+APP_AUTHOR = "OHTAP"
 
 PORT = 8001
 SPA_PATH = Path(__file__).parent.absolute() / "winnow" / "www-data"
 TOOL_SCRIPT_PATH = Path(__file__).parent.absolute() / "winnow" / "tool_script.py"
-DATA_PATH = Path(__file__).parent.absolute() / "data"
 
 log_config = {
     "version": 1,
@@ -37,7 +41,14 @@ logging.config.dictConfig(log_config)
 
 
 def dev():
-    return create_app(SPA_PATH, TOOL_SCRIPT_PATH, DATA_PATH, debug=True)
+    logger = logging.getLogger("logger")
+    logger.setLevel(logging.DEBUG)
+    data_path = Path(__file__).parent.absolute() / "data"
+
+    logger.info(f"Starting application IN DEVELOPMENT MODE on https://localhost:{PORT}")
+    logger.info(f"User data path: {data_path}")
+
+    return create_app(SPA_PATH, TOOL_SCRIPT_PATH, data_path, debug=True)
 
 
 def main():
@@ -54,14 +65,7 @@ def main():
 
     args = parser.parse_args()
 
-    logger = logging.getLogger("logger")
-
     if args.dev:
-        logger.setLevel(logging.DEBUG)
-        logger.debug(
-            f"Starting application IN DEVELOPMENT MODE on https://localhost:{PORT}"
-        )
-
         uvicorn.run(
             f"{Path(__file__).stem}:dev",
             factory=True,
@@ -71,8 +75,13 @@ def main():
         )
         raise SystemExit
 
+    logger = logging.getLogger("logger")
+    data_path = Path(user_data_dir(APP_NAME, APP_AUTHOR))
+
     logger.info(f"Starting application on https://localhost:{PORT}")
-    app = create_app(SPA_PATH, TOOL_SCRIPT_PATH, DATA_PATH)
+    logger.info(f"User data path: {data_path}")
+
+    app = create_app(SPA_PATH, TOOL_SCRIPT_PATH, data_path)
 
     uvicorn.run(app, port=PORT, log_level="warning")
 
