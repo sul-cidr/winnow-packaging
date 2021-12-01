@@ -9,6 +9,7 @@ fastapi = "*"
 uvicorn = "*"
 python-multipart = "*"
 pandas = "*"
+appdirs = "*"
 
 [dev-packages]
 
