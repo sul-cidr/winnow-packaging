@@ -77,6 +77,7 @@ def main():
 
     logger = logging.getLogger("logger")
     data_path = Path(user_data_dir(APP_NAME, APP_AUTHOR))
+    data_path.mkdir(parents=True, exist_ok=True)
 
     logger.info(f"Starting application on https://localhost:{PORT}")
     logger.info(f"User data path: {data_path}")

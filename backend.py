@@ -360,6 +360,9 @@ def create_app(spa_path, tool_script_path, data_path, debug=False):
     collections_path = data_path / "corpus-files"
     metadata_path = data_path / "metadata-files"
 
+    collections_path.mkdir(parents=True, exist_ok=True)
+    metadata_path.mkdir(parents=True, exist_ok=True)
+
     data = initialize_data(data_file, collections_path)
     current_run = {
         "id": "",
