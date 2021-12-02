@@ -47,7 +47,7 @@ def save_session_file(data, data_file):
     json.dump(data, data_file.open("w", encoding="utf8"), indent=2)
 
 
-def create_app(spa_path, tool_script_path, storage_path, debug=False):
+def create_app(spa_path, storage_path, bundled=False, debug=False):
     if debug:
         logger.setLevel("DEBUG")
 
@@ -334,10 +334,16 @@ def create_app(spa_path, tool_script_path, storage_path, debug=False):
         current_run["statusMessage"] = "Starting subcorpora run..."
         current_run["afterRun"] = True
 
+        # If we're bundled (pyinstaller) then the cli is available at `sys.executable`
+        #  -- if not, sys.executable is the appropriate python interpreter, and we need
+        #  to supply __main__.__file__ which is an absolute path to the cli.py script
+        executable = [sys.executable]
+        if not bundled:
+            executable += [__import__("__main__").__file__]
+
         tool_script_process = await asyncio.create_subprocess_exec(
-            sys.executable,
-            "-u",
-            tool_script_path,
+            *executable,
+            "--tool-script",
             json.dumps(run_data),
             stdout=asyncio.subprocess.PIPE,
             cwd=storage_path,
