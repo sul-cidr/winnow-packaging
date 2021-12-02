@@ -16,7 +16,7 @@ logger = logging.getLogger("logger")
 
 
 def initialize_data(data_file, collection_path):
-    logger.info("Initializing data from session.json...")
+    logger.info(f"Initializing data from {data_file}...")
 
     if data_file.is_file():
         data = json.load(data_file.open("r", encoding="utf8"))
@@ -47,7 +47,7 @@ def save_session_file(data, data_file):
     json.dump(data, data_file.open("w", encoding="utf8"), indent=2)
 
 
-def create_app(spa_path, tool_script_path, data_path, debug=False):
+def create_app(spa_path, tool_script_path, storage_path, debug=False):
     if debug:
         logger.setLevel("DEBUG")
 
@@ -340,6 +340,7 @@ def create_app(spa_path, tool_script_path, data_path, debug=False):
             tool_script_path,
             json.dumps(run_data),
             stdout=asyncio.subprocess.PIPE,
+            cwd=storage_path,
         )
 
         while line := await tool_script_process.stdout.readline():
@@ -351,15 +352,18 @@ def create_app(spa_path, tool_script_path, data_path, debug=False):
 
     @app.get("/get_python_progress")
     async def get_python_progress():
-        return {"total": current_run["total"], "message": current_run["statusMessage"]}
+        return {
+            "total": current_run.get("total"),
+            "message": current_run.get("statusMessage"),
+        }
 
     app.mount(path="/", app=SinglePageApplication(directory=spa_path), name="SPA")
 
-    data_file = data_path / "session.json"
-    run_file = data_path / "run.json"
-    collections_path = data_path / "corpus-files"
-    metadata_path = data_path / "metadata-files"
-    runs_path = data_path / "runs"
+    data_file = storage_path / "data" / "session.json"
+    run_file = storage_path / "data" / "run.json"
+    collections_path = storage_path / "data" / "corpus-files"
+    metadata_path = storage_path / "data" / "metadata-files"
+    runs_path = storage_path / "data" / "runs"
 
     collections_path.mkdir(parents=True, exist_ok=True)
     metadata_path.mkdir(parents=True, exist_ok=True)

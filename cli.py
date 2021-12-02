@@ -19,6 +19,7 @@ APP_AUTHOR = "OHTAP"
 PORT = 8001
 SPA_PATH = Path(__file__).parent.absolute() / "winnow" / "www-data"
 TOOL_SCRIPT_PATH = Path(__file__).parent.absolute() / "winnow" / "tool_script.py"
+DEV_STORAGE_PATH = Path(__file__).parent.absolute()
 
 log_config = {
     "version": 1,
@@ -41,14 +42,7 @@ logging.config.dictConfig(log_config)
 
 
 def dev():
-    logger = logging.getLogger("logger")
-    logger.setLevel(logging.DEBUG)
-    data_path = Path(__file__).parent.absolute() / "data"
-
-    logger.info(f"Starting application IN DEVELOPMENT MODE on https://localhost:{PORT}")
-    logger.info(f"User data path: {data_path}")
-
-    return create_app(SPA_PATH, TOOL_SCRIPT_PATH, data_path, debug=True)
+    return create_app(SPA_PATH, TOOL_SCRIPT_PATH, DEV_STORAGE_PATH, debug=True)
 
 
 def main():
@@ -65,7 +59,15 @@ def main():
 
     args = parser.parse_args()
 
+    logger = logging.getLogger("logger")
+
     if args.dev:
+        logger.setLevel(logging.DEBUG)
+        logger.info(
+            f"Starting application IN DEVELOPMENT MODE on https://localhost:{PORT}"
+        )
+        logger.info(f"App storage path: {DEV_STORAGE_PATH}")
+
         uvicorn.run(
             f"{Path(__file__).stem}:dev",
             factory=True,
@@ -75,14 +77,13 @@ def main():
         )
         raise SystemExit
 
-    logger = logging.getLogger("logger")
-    data_path = Path(user_data_dir(APP_NAME, APP_AUTHOR))
-    data_path.mkdir(parents=True, exist_ok=True)
+    storage_path = Path(user_data_dir(APP_NAME, APP_AUTHOR))
+    storage_path.mkdir(parents=True, exist_ok=True)
 
     logger.info(f"Starting application on https://localhost:{PORT}")
-    logger.info(f"User data path: {data_path}")
+    logger.info(f"App storage path: {storage_path}")
 
-    app = create_app(SPA_PATH, TOOL_SCRIPT_PATH, data_path)
+    app = create_app(SPA_PATH, TOOL_SCRIPT_PATH, storage_path)
 
     uvicorn.run(app, port=PORT, log_level="warning")
 
