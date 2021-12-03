@@ -4,6 +4,7 @@
 
 import argparse
 import logging
+import subprocess
 import sys
 from importlib import import_module
 from pathlib import Path
@@ -58,6 +59,13 @@ def main():
     parser = argparse.ArgumentParser(description="Description: {}".format(__file__))
 
     parser.add_argument(
+        "--no-launch-browser",
+        action="store_true",
+        default=False,
+        help="Disable automatic opening of a browser tab/window",
+    )
+
+    parser.add_argument(
         "--dev",
         action="store_true",
         default=False,
@@ -110,7 +118,9 @@ def main():
     storage_path = Path(user_data_dir(APP_NAME, APP_AUTHOR))
     storage_path.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Starting application on https://localhost:{PORT}")
+    app_url = f"http://localhost:{PORT}"
+
+    logger.info(f"Starting application on {app_url}")
     logger.info(f"App storage path: {storage_path}")
 
     app = create_app(SPA_PATH, storage_path, is_bundled())
@@ -122,13 +132,23 @@ def main():
         # The solution here is to manually create a ProactorEventLoop and pass it to
         #  Uvicorn directly.
         import asyncio
+        import os
         from uvicorn import Config, Server
 
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         loop = asyncio.new_event_loop()
         config = Config(app, port=PORT, log_level="warning", loop=loop)
         server = Server(config)
+        if not args.no_launch_browser:
+            os.startfile(app_url)
         loop.run_until_complete(server.serve())
+        raise SystemExit
+
+    if not args.no_launch_browser:
+        if sys.platform == "darwin":
+            subprocess.Popen(["open", app_url])
+        else:
+            subprocess.Popen(["xdg-open", app_url])
 
     uvicorn.run(app, port=PORT, log_level="warning")
 
