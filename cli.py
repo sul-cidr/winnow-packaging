@@ -59,7 +59,7 @@ def main():
         "--dev",
         action="store_true",
         default=False,
-        help="Launch application in development mode",
+        help="Launch application in development mode (not available on Windows)",
     )
 
     parser.add_argument(
@@ -86,6 +86,10 @@ def main():
     logger = logging.getLogger("logger")
 
     if args.dev:
+        if sys.platform == "win32":
+            logger.fatal("Development mode not available on Windows")
+            raise SystemError
+
         logger.setLevel(logging.DEBUG)
         logger.info(
             f"Starting application IN DEVELOPMENT MODE on https://localhost:{PORT}"
