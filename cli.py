@@ -109,6 +109,21 @@ def main():
 
     app = create_app(SPA_PATH, storage_path, is_bundled())
 
+    if sys.platform == "win32":
+        # Although asyncio.ProactorEventLoop is the default on Python >= 3.8, Uvicorn
+        #   uses asyncio.SelectorEventLoop which doesn't support subprocesses on Windows:
+        #  (https://docs.python.org/3/library/asyncio-platforms.html#asyncio-windows-subprocess)
+        # The solution here is to manually create a ProactorEventLoop and pass it to
+        #  Uvicorn directly.
+        import asyncio
+        from uvicorn import Config, Server
+
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        loop = asyncio.new_event_loop()
+        config = Config(app, port=PORT, log_level="warning", loop=loop)
+        server = Server(config)
+        loop.run_until_complete(server.serve())
+
     uvicorn.run(app, port=PORT, log_level="warning")
 
 
