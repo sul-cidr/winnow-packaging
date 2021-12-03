@@ -8,16 +8,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout main repo
+        uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout Winnow source code
+        uses: actions/checkout@v2
+        with:
+          repository: sul-cidr/ohtap-winnow
+          ref: cidr-2021
+          path: winnow
+
+      - name: Build Winnow UI application (React)
+        run: |
+          cd ~/winnow
+          npm install
+          npm run build
+
+      - name: Copy Winnow assets
+        run: |
+          cp -av ~/winnow/build ~/main/winnow/www-data
+          cp ~/winnow/src/tool_script.py ~/main/winnow/
+
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
+
       - name: Get Python Version
         id: get-python-version
         run: |
           echo "::set-output name=python-version::$(python -c "import sys; print(sys.hexversion)")"
         shell: bash
+
       - name: Cache
         uses: actions/cache@v2.1.1
         with:
@@ -25,10 +49,14 @@ jobs:
             ~/.cache/pip
             src/.venv
           key: ${{ runner.os }}-${{ steps.get-python-version.outputs.python-version }}-${{ hashFiles('Pipfile.lock') }}
+
       - name: Install dependencies
         run: |
+          cd ~/main
           sudo pip install pipenv
           PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev
+
       - name: Build Linux executable
         run: |
+          cd ~/main
           pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow --add-data winnow:winnow
