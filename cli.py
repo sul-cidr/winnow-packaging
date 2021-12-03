@@ -43,10 +43,12 @@ logging.config.dictConfig(log_config)
 
 
 def is_bundled():
+    """Returns `True` if executed from within a PyInstaller bundle."""
     return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
 
 
 def dev():
+    """Factory function to return a FastAPI app without needing to take arguments."""
     return create_app(SPA_PATH, DEV_STORAGE_PATH, is_bundled(), debug=True)
 
 
