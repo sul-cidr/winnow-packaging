@@ -22,14 +22,14 @@ jobs:
 
       - name: Build Winnow UI application (React)
         run: |
-          cd ~/winnow
+          cd $GITHUB_WORKSPACE/winnow
           npm install
           npm run build
 
       - name: Copy Winnow assets
         run: |
-          cp -av ~/winnow/build ~/main/winnow/www-data
-          cp ~/winnow/src/tool_script.py ~/main/winnow/
+          cp -av $GITHUB_WORKSPACE/winnow/build $GITHUB_WORKSPACE/main/winnow/www-data
+          cp $GITHUB_WORKSPACE/winnow/src/tool_script.py $GITHUB_WORKSPACE/main/winnow/
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -38,9 +38,9 @@ jobs:
 
       - name: Get Python Version
         id: get-python-version
+        shell: bash
         run: |
           echo "::set-output name=python-version::$(python -c "import sys; print(sys.hexversion)")"
-        shell: bash
 
       - name: Cache
         uses: actions/cache@v2.1.1
@@ -52,11 +52,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ~/main
+          cd $GITHUB_WORKSPACE/main
           sudo pip install pipenv
           PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev
 
       - name: Build Linux executable
         run: |
-          cd ~/main
+          cd $GITHUB_WORKSPACE/main
           pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow --add-data winnow:winnow
