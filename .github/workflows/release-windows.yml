@@ -33,7 +33,7 @@ jobs:
 
       - name: Copy Winnow assets
         run: |
-          cp -av ${env:GITHUB_WORKSPACE}/winnow/build ${env:GITHUB_WORKSPACE}/main/winnow/www-data
+          cp ${env:GITHUB_WORKSPACE}/winnow/build ${env:GITHUB_WORKSPACE}/main/winnow/www-data
           cp ${env:GITHUB_WORKSPACE}/winnow/src/tool_script.py ${env:GITHUB_WORKSPACE}/main/winnow/
 
       - name: Set up Python 3.9
