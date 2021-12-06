@@ -58,7 +58,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd ${env:GITHUB_WORKSPACE}/main
-          sudo pip install pipenv
+          pip install pipenv
           PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev
           pipenv install pywin32-ctypes
 
