@@ -27,14 +27,14 @@ jobs:
           #  are treated as errors and the build fails
           CI: false
         run: |
-          cd $GITHUB_WORKSPACE/winnow
+          cd ${env:GITHUB_WORKSPACE}/winnow
           npm install
           npm run build
 
       - name: Copy Winnow assets
         run: |
-          cp -av $GITHUB_WORKSPACE/winnow/build $GITHUB_WORKSPACE/main/winnow/www-data
-          cp $GITHUB_WORKSPACE/winnow/src/tool_script.py $GITHUB_WORKSPACE/main/winnow/
+          cp -av ${env:GITHUB_WORKSPACE}/winnow/build ${env:GITHUB_WORKSPACE}/main/winnow/www-data
+          cp ${env:GITHUB_WORKSPACE}/winnow/src/tool_script.py ${env:GITHUB_WORKSPACE}/main/winnow/
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
@@ -57,7 +57,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd $GITHUB_WORKSPACE/main
+          cd ${env:GITHUB_WORKSPACE}/main
           sudo pip install pipenv
           PIPENV_VENV_IN_PROJECT=1 pipenv sync --dev
           pipenv install pywin32-ctypes
@@ -65,12 +65,12 @@ jobs:
       - name: Get Version
         id: version
         run: |
-          cd $GITHUB_WORKSPACE/main
+          cd ${env:GITHUB_WORKSPACE}/main
           echo "::set-output name=version::$(pipenv run python cli.py --version)"
 
       - name: Build Linux Executable
         run: |
-          cd $GITHUB_WORKSPACE/main
+          cd ${env:GITHUB_WORKSPACE}/main
           pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow --add-data "winnow;winnow"
 
       # - name: Create a Release
