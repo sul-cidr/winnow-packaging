@@ -77,5 +77,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: winnow-windows-${{ steps.version.outputs.version }}
-          path: ${{ github.workspace }}/main/dist/winnow
+          path: ${{ github.workspace }}\main\dist\winnow.exe
           retention-days: 1
