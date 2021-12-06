@@ -73,24 +73,9 @@ jobs:
           cd ${env:GITHUB_WORKSPACE}/main
           pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow --add-data "winnow;winnow"
 
-      # - name: Create a Release
-      #   uses: actions/create-release@v1
-      #   id: create_release
-      #   env:
-      #     GITHUB_TOKEN: ${{ github.token }}
-      #   with:
-      #     draft: false
-      #     prerelease: false
-      #     release_name: ${{ steps.version.outputs.version }}
-      #     tag_name: v${{ steps.version.outputs.version }}
-      #     body: "Version ${{ steps.version.outputs.version }}"
-
-      # - name: Upload Linux Executable to Release
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ github.token }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ${{ github.workspace }}/main/dist/winnow
-      #     asset_name: winnow-linux-${{ steps.version.outputs.version }}
-      #     asset_content_type: application/x-executable
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: winnow-windows-${{ steps.version.outputs.version }}
+          path: ${{ github.workspace }}/main/dist/winnow
+          retention-days: 1
