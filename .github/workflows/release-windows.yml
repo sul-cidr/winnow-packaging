@@ -54,7 +54,8 @@ jobs:
       - name: Download (Built) Winnow UI Front-end Application
         uses: actions/download-artifact@v2
         with:
-          name: winnow-ui
+          name: winnow-react-app
+          path: winnow-ui
 
       - name: Copy Winnow assets
         run: |
