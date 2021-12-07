@@ -4,12 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pyinstaller = "*"
-fastapi = "*"
-uvicorn = "*"
-python-multipart = "*"
-pandas = "*"
 appdirs = "*"
+fastapi = "*"
+pandas = "*"
+pyinstaller = "==4.6"
+python-multipart = "*"
+uvicorn = "*"
+
+pywin32-ctypes = {version = "*", sys_platform = "== 'win32'"}
 
 [dev-packages]
 

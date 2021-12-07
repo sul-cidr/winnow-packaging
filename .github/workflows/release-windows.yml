@@ -60,7 +60,6 @@ jobs:
           cd ${env:GITHUB_WORKSPACE}/main
           pip install pipenv
           pipenv sync --dev
-          pipenv install pywin32-ctypes
 
       - name: Get Version
         id: version
