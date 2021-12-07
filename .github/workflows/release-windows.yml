@@ -70,11 +70,11 @@ jobs:
       - name: Build Windows Executable
         run: |
           cd ${env:GITHUB_WORKSPACE}/main
-          pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow --add-data "winnow;winnow"
+          pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow-${{ steps.version.outputs.version }} --add-data "winnow;winnow"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: winnow-windows-${{ steps.version.outputs.version }}
-          path: ${{ github.workspace }}\main\dist\winnow.exe
+          path: ${{ github.workspace }}\main\dist\winnow-${{ steps.version.outputs.version }}.exe
           retention-days: 1
