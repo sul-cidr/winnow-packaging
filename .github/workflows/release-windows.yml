@@ -33,7 +33,7 @@ jobs:
 
       - name: Copy Winnow assets
         run: |
-          cp ${env:GITHUB_WORKSPACE}/winnow/build ${env:GITHUB_WORKSPACE}/main/winnow/www-data
+          Copy-Item -Path ${env:GITHUB_WORKSPACE}/winnow/build -Recurse -Destination ${env:GITHUB_WORKSPACE}/main/winnow/www-data -Container
           cp ${env:GITHUB_WORKSPACE}/winnow/src/tool_script.py ${env:GITHUB_WORKSPACE}/main/winnow/
 
       - name: Set up Python 3.9
@@ -68,7 +68,7 @@ jobs:
           cd ${env:GITHUB_WORKSPACE}/main
           echo "::set-output name=version::$(pipenv run python cli.py --version)"
 
-      - name: Build Linux Executable
+      - name: Build Windows Executable
         run: |
           cd ${env:GITHUB_WORKSPACE}/main
           pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow --add-data "winnow;winnow"
