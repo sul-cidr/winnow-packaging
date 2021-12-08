@@ -11,6 +11,7 @@ pyinstaller = "==4.6"
 python-multipart = "*"
 uvicorn = "*"
 
+pefile = {version = "*", sys_platform = "== 'win32'"}
 pywin32-ctypes = {version = "*", sys_platform = "== 'win32'"}
 
 [dev-packages]
