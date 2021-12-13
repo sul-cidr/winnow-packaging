@@ -11,6 +11,10 @@ on:
         type: boolean
         description: Build Mac OS .dmg?
         default: true
+      release:
+        type: boolean
+        description: Publish release?
+        default: true
 
 jobs:
   build_frontend:
