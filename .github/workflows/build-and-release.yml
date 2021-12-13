@@ -191,5 +191,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: winnow-windows-${{ steps.version.outputs.version }}
-          path: ${{ github.workspace }}\main\dist\winnow-${{ steps.version.outputs.version }}.dmg
+          path: ${{ github.workspace }}/main/dist/winnow-${{ steps.version.outputs.version }}.dmg
           retention-days: 1
