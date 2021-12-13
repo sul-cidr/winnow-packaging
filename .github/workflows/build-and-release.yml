@@ -7,6 +7,10 @@ on:
         type: boolean
         description: Build Windows .exe?
         default: true
+      mac:
+        type: boolean
+        description: Build Mac OS .dmg?
+        default: true
 
 jobs:
   build_frontend:
@@ -109,4 +113,83 @@ jobs:
         with:
           name: winnow-windows-${{ steps.version.outputs.version }}
           path: ${{ github.workspace }}\main\dist\winnow-${{ steps.version.outputs.version }}.exe
+          retention-days: 1
+
+
+  build_mac_release:
+    name: Build Mac Release
+    runs-on: macos-latest
+    needs: build_frontend
+    if: github.event.input.mac == true
+
+    steps:
+      - name: Checkout Main Repo
+        uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout Winnow Repo
+        uses: actions/checkout@v2
+        with:
+          repository: sul-cidr/ohtap-winnow
+          ref: cidr-2021
+          path: winnow
+
+      - name: Download (Built) Winnow UI Front-end Application
+        uses: actions/download-artifact@v2
+        with:
+          name: winnow-react-app
+          path: winnow-ui
+
+      - name: Copy Winnow assets
+        run: |
+          cp -av $GITHUB_WORKSPACE/winnow/build $GITHUB_WORKSPACE/main/winnow/www-data
+          cp $GITHUB_WORKSPACE/winnow/src/tool_script.py $GITHUB_WORKSPACE/main/winnow/
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Get Python Version
+        id: get-python-version
+        shell: bash
+        run: |
+          echo "::set-output name=python-version::$(python -c "import sys; print(sys.hexversion)")"
+
+      - name: Cache
+        uses: actions/cache@v2.1.1
+        with:
+          path: |
+            ~/.cache/pip
+            src/.venv
+          key: ${{ runner.os }}-${{ steps.get-python-version.outputs.python-version }}-${{ hashFiles('Pipfile.lock') }}
+
+      - name: Install Dependencies
+        run: |
+          cd $GITHUB_WORKSPACE/main
+          pip install pipenv
+          pipenv install
+
+      - name: Get Version
+        id: version
+        run: |
+          cd $GITHUB_WORKSPACE/main
+          echo "::set-output name=version::$(pipenv run python cli.py --version)"
+
+      - name: Build Mac Executable
+        run: |
+          cd ${env:GITHUB_WORKSPACE}/main
+          pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow-${{ steps.version.outputs.version }} --add-data winnow:winnow
+
+      - name: Create DMG
+        run: |
+          cd ${env:GITHUB_WORKSPACE}/main
+          hdiutil create -volname Winnow-${{ steps.version.outputs.version }} -srcfolder dist -ov -format UDZO dist/winnow-${{ steps.version.outputs.version }}.dmg
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: winnow-windows-${{ steps.version.outputs.version }}
+          path: ${{ github.workspace }}\main\dist\winnow-${{ steps.version.outputs.version }}.dmg
           retention-days: 1
