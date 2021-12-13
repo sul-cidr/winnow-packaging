@@ -207,3 +207,59 @@ jobs:
           name: winnow-mac-${{ steps.version.outputs.version }}
           path: ${{ github.workspace }}/main/dist/winnow-${{ steps.version.outputs.version }}.dmg
           retention-days: 1
+
+
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build_windows_executable, build_mac_executable]
+
+    steps:
+      - name: Set Version
+        id: version
+        run: |
+          echo "::set-output name=version::${{needs.build_windows_executable.outputs.version}}:
+
+      - name: Create a Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          body: "Version ${{ steps.version.outputs.version }}"
+
+      - name: Download Windows Executable
+        uses: actions/download-artifact@v2
+        with:
+          name: winnow-windows-${{ steps.version.outputs.version }}
+          path: dist
+
+      - name: Upload Windows Executable to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}dist/winnow-${{ steps.version.outputs.version }}.exe
+          asset_name: winnow-windows-${{ steps.version.outputs.version }}
+          asset_content_type: application/x-dosexec
+
+      - name: Download Mac Executable
+        uses: actions/download-artifact@v2
+        with:
+          name: winnow-mac-${{ steps.version.outputs.version }}
+          path: dist
+
+      - name: Upload Mac Executable to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}dist/winnow-${{ steps.version.outputs.version }}.dmg
+          asset_name: winnow-mac-${{ steps.version.outputs.version }}
+          asset_content_type: application/zlib
