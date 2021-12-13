@@ -222,7 +222,7 @@ jobs:
       - name: Set Version
         id: version
         run: |
-          echo "::set-output name=version::${{needs.build_windows_executable.outputs.version}}:
+          echo "::set-output name=version::${{needs.build_windows_executable.outputs.version}}"
 
       - name: Create a Release
         uses: actions/create-release@v1
