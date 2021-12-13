@@ -179,12 +179,12 @@ jobs:
 
       - name: Build Mac Executable
         run: |
-          cd ${env:GITHUB_WORKSPACE}/main
+          cd $GITHUB_WORKSPACE/main
           pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow-${{ steps.version.outputs.version }} --add-data winnow:winnow
 
       - name: Create DMG
         run: |
-          cd ${env:GITHUB_WORKSPACE}/main
+          cd $GITHUB_WORKSPACE/main
           hdiutil create -volname Winnow-${{ steps.version.outputs.version }} -srcfolder dist -ov -format UDZO dist/winnow-${{ steps.version.outputs.version }}.dmg
 
       - name: Upload Artifact
