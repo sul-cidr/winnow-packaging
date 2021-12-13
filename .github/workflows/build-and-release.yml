@@ -46,7 +46,7 @@ jobs:
     name: Build Windows Release
     runs-on: windows-latest
     needs: build_frontend
-    if: github.event.input.windows == true
+    if: github.event.inputs.windows == true
 
     steps:
       - name: Checkout Main Repo
@@ -120,7 +120,7 @@ jobs:
     name: Build Mac Release
     runs-on: macos-latest
     needs: build_frontend
-    if: github.event.input.mac == true
+    if: github.event.inputs.mac == true
 
     steps:
       - name: Checkout Main Repo
