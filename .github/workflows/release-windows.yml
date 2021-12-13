@@ -2,6 +2,11 @@ name: Build executables and create release
 
 on:
   workflow_dispatch:
+    inputs:
+      windows:
+        type: boolean
+        description: Build Windows .exe?
+        default: true
 
 jobs:
   build_frontend:
@@ -33,10 +38,11 @@ jobs:
           retention-days: 1
 
 
-  build_release:
-    name: Build Release
+  build_windows_release:
+    name: Build Windows Release
     runs-on: windows-latest
     needs: build_frontend
+    if: github.event.input.windows == true
 
     steps:
       - name: Checkout Main Repo
