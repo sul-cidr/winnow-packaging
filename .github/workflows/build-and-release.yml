@@ -16,6 +16,9 @@ jobs:
   build_frontend:
     name: Build Winnow UI Front-end Application
     runs-on: ubuntu-latest
+    outputs:
+      ui-version: ${{ steps.ui-version.outputs.version }}
+
     steps:
       - name: Checkout Winnow Repo
         uses: actions/checkout@v2
@@ -34,6 +37,13 @@ jobs:
           npm install
           npm run build
 
+
+      - name: Set UI Version
+        id: ui-version
+        run: |
+          cd ${GITHUB_WORKSPACE}/winnow
+          echo "::set-output name=version::$(node -p "require('./package.json').version")"
+
       - name: Upload Built Application
         uses: actions/upload-artifact@v2
         with:
@@ -42,11 +52,13 @@ jobs:
           retention-days: 1
 
 
-  build_windows_release:
-    name: Build Windows Release
+  build_windows_executable:
+    name: Build Windows Executable
     runs-on: windows-latest
     needs: build_frontend
     if: github.event.inputs.windows == 'true'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout Main Repo
@@ -97,11 +109,11 @@ jobs:
           pip install pipenv
           pipenv install
 
-      - name: Get Version
+      - name: Set Version
         id: version
         run: |
           cd ${env:GITHUB_WORKSPACE}/main
-          echo "::set-output name=version::$(pipenv run python cli.py --version)"
+          echo "::set-output name=version::${{needs.build_frontend.outputs.ui-version}}_$(pipenv run python cli.py --version)"
 
       - name: Build Windows Executable
         run: |
@@ -116,11 +128,13 @@ jobs:
           retention-days: 1
 
 
-  build_mac_release:
-    name: Build Mac Release
+  build_mac_executable:
+    name: Build Mac Executable
     runs-on: macos-latest
     needs: build_frontend
     if: github.event.inputs.mac == 'true'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout Main Repo
@@ -171,11 +185,11 @@ jobs:
           pip install pipenv
           pipenv install
 
-      - name: Get Version
+      - name: Set Version
         id: version
         run: |
           cd $GITHUB_WORKSPACE/main
-          echo "::set-output name=version::$(pipenv run python cli.py --version)"
+          echo "::set-output name=version::${{needs.build_frontend.outputs.ui-version}}_$(pipenv run python cli.py --version)"
 
       - name: Build Mac Executable
         run: |
@@ -190,6 +204,6 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: winnow-windows-${{ steps.version.outputs.version }}
+          name: winnow-mac-${{ steps.version.outputs.version }}
           path: ${{ github.workspace }}/main/dist/winnow-${{ steps.version.outputs.version }}.dmg
           retention-days: 1
