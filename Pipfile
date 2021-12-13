@@ -14,6 +14,8 @@ uvicorn = "*"
 pefile = {version = "*", sys_platform = "== 'win32'"}
 pywin32-ctypes = {version = "*", sys_platform = "== 'win32'"}
 
+macholib = {version = "*", sys_platform = "== 'darwin'"}
+
 [dev-packages]
 
 [requires]
