@@ -2,7 +2,7 @@
 
 """ HTTP server and launcher for Winnow """
 
-__version__ = "0.4"
+__version__ = "0.5"
 
 import argparse
 import logging
