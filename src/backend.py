@@ -10,7 +10,7 @@ from typing import List
 
 from fastapi import FastAPI, Request, Form, File, UploadFile
 
-from fastapi_spa import SinglePageApplication
+from .fastapi_spa import SinglePageApplication
 
 logger = logging.getLogger("logger")
 

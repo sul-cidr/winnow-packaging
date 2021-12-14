@@ -14,7 +14,7 @@ from pathlib import Path
 import uvicorn
 from appdirs import user_data_dir
 
-from backend import create_app
+from src.backend import create_app
 
 
 # Strings used for creating a user-specific data folder
