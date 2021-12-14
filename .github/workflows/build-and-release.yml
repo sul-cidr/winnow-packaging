@@ -239,7 +239,7 @@ jobs:
           body: |
             Version ${{ steps.version.outputs.version }}:
             - [Winnow UI](https://github.com/ohtap/subcorpora-tool) Version: ${{needs.build_frontend.outputs.ui-version}}
-            - [API and Packaging](https://github.com/sul-cidr/winnow-packaging) Version: ${{needs.build_frontend.outputs.backend-version}}
+            - [API and Packaging](https://github.com/sul-cidr/winnow-packaging) Version: ${{needs.build_windows_executable.outputs.backend-version}}
 
       - name: Download Windows Executable
         uses: actions/download-artifact@v2
