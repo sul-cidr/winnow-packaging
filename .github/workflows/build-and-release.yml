@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: sul-cidr/ohtap-winnow
-          ref: cidr-2021
+          ref: master
           path: winnow
 
       - name: Build Application
