@@ -2,6 +2,8 @@
 
 """ HTTP server and launcher for Winnow """
 
+__version__ = "0.4"
+
 import argparse
 import logging
 import subprocess
@@ -13,6 +15,7 @@ import uvicorn
 from appdirs import user_data_dir
 
 from backend import create_app
+
 
 # Strings used for creating a user-specific data folder
 #  (APP_AUTHOR only used on Windows)
@@ -59,6 +62,13 @@ def main():
     parser = argparse.ArgumentParser(description="Description: {}".format(__file__))
 
     parser.add_argument(
+        "--version",
+        action="store_true",
+        default=False,
+        help="Display the version number and exit",
+    )
+
+    parser.add_argument(
         "--no-launch-browser",
         action="store_true",
         default=False,
@@ -80,6 +90,10 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.version:
+        print(__version__)
+        raise SystemExit
 
     if args.tool_script:
         # Flush the sys.stdout buffer on newlines
