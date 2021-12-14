@@ -123,7 +123,7 @@ jobs:
       - name: Build Windows Executable
         run: |
           cd ${env:GITHUB_WORKSPACE}/main
-          pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow-${{ steps.version.outputs.version }} --add-data "winnow;winnow"
+          pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow-${{ steps.version.outputs.version }} --icon=assets/W_256x256.ico --add-data "winnow;winnow"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -200,11 +200,12 @@ jobs:
       - name: Build Mac Executable
         run: |
           cd $GITHUB_WORKSPACE/main
-          pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --name winnow-${{ steps.version.outputs.version }} --add-data winnow:winnow
+          pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --windowed --name winnow-${{ steps.version.outputs.version }} --icon=assets/W_256x256.icns --add-data winnow:winnow
 
       - name: Create DMG
         run: |
           cd $GITHUB_WORKSPACE/main
+          rm dist/winnow-${{ steps.version.outputs.version }}
           hdiutil create -volname Winnow-${{ steps.version.outputs.version }} -srcfolder dist -ov -format UDZO dist/winnow-${{ steps.version.outputs.version }}.dmg
 
       - name: Upload Artifact
