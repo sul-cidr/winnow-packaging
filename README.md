@@ -36,11 +36,9 @@ Note: these steps and screenshots come from macOS 10.15 Catalina; wording and st
 Note: these steps describe how to whitelist the Winnow application with Microsoft Defender SmartScreen, which is enabled by default in Windows installations.
 
 1. When you first attempt to launch Winnow you may see the following dialog.  Click "More info" to reveal the option to whitelist the application.
-   
+
    ![image](https://user-images.githubusercontent.com/96218/146101326-244a1a18-c70d-4a13-ac46-3a70455d6019.png)
 
-2.  Click "Run anyway" to launch the application.  You should not need to go through these steps again.
-   
+2. Click "Run anyway" to launch the application.  You should not need to go through these steps again.
+
    ![image](https://user-images.githubusercontent.com/96218/146101506-f35c4188-905c-4c3a-9d29-e57dbe45357b.png)
-
-
