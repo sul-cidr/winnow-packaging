@@ -201,11 +201,20 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/main
           pipenv run pyinstaller cli.py --hidden-import winnow.tool_script --onefile --windowed --name winnow-${{ steps.version.outputs.version }} --icon=assets/W_256x256.icns --add-data winnow:winnow
+          rm dist/winnow-${{ steps.version.outputs.version }}
+          mv dist/winnow-${{ steps.version.outputs.version }}.app/Contents/MacOS/winnow-${{ steps.version.outputs.version }} dist/winnow-${{ steps.version.outputs.version }}.app/Contents/MacOS/winnow-${{ steps.version.outputs.version }}.bin
+          cat <<- 'EOF' > dist/winnow-${{ steps.version.outputs.version }}.app/Contents/MacOS/winnow-${{ steps.version.outputs.version }}
+          #!/bin/bash
+          realpath() { [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1$./}" }
+          SCRIPT=$(realpath $0)
+          SCRIPTPATH=$(dirname "$SCRIPT")
+          exec open -a Terminal $SCRIPTPATH/winnow.bin
+          EOF
+          chmod 755 dist/winnow-${{ steps.version.outputs.version }}.app/Contents/MacOS/winnow-${{ steps.version.outputs.version }}
 
       - name: Create DMG
         run: |
           cd $GITHUB_WORKSPACE/main
-          rm dist/winnow-${{ steps.version.outputs.version }}
           hdiutil create -volname Winnow-${{ steps.version.outputs.version }} -srcfolder dist -ov -format UDZO dist/winnow-${{ steps.version.outputs.version }}.dmg
 
       - name: Upload Artifact
