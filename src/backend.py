@@ -292,11 +292,7 @@ def create_app(spa_path, storage_path, bundled=False, debug=False):
     @app.post("/upload_metadata")
     async def upload_metadata(file: List[UploadFile] = File(...)):
         for _file in file:
-            # timestamp is milliseconds since the epoch, to match the return value of
-            #  JS `Date.now()` (used in the original version)
-            timestamp = int(datetime.now().timestamp() * 1000)
-            suffix = Path(_file.filename).suffix
-            target_path = metadata_path / f"metadata{timestamp}{suffix}"
+            target_path = metadata_path / _file.filename
             logger.debug("Writing file '%s'", target_path)
             with target_path.open("wb") as _fh:
                 _fh.write(_file.file.read())
